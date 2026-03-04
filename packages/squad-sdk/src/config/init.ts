@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 import { existsSync, cpSync, statSync, mkdirSync, writeFileSync, readFileSync, readdirSync } from 'fs';
 import { MODELS } from '../runtime/constants.js';
 import type { SquadConfig, ModelSelectionConfig, RoutingConfig } from '../runtime/config.js';
-import type { StreamDefinition } from '../streams/types.js';
+import type { WorkstreamDefinition } from '../streams/types.js';
 
 // ============================================================================
 // Template Resolution
@@ -110,8 +110,8 @@ export interface InitOptions {
   prompt?: string;
   /** If true, disable extraction from consult sessions (read-only consultations) */
   extractionDisabled?: boolean;
-  /** Optional stream definitions — generates .squad/streams.json when provided */
-  streams?: StreamDefinition[];
+  /** Optional workstream definitions — generates .squad/workstreams.json when provided */
+  streams?: WorkstreamDefinition[];
 }
 
 /**
@@ -848,32 +848,32 @@ ${projectDescription ? `- **Description:** ${projectDescription}\n` : ''}- **Cre
   }
   
   // -------------------------------------------------------------------------
-  // Generate .squad/streams.json (when streams provided)
+  // Generate .squad/workstreams.json (when streams provided)
   // -------------------------------------------------------------------------
 
   if (options.streams && options.streams.length > 0) {
-    const streamsConfig = {
-      streams: options.streams,
+    const workstreamsConfig = {
+      workstreams: options.streams,
       defaultWorkflow: 'branch-per-issue',
     };
-    const streamsPath = join(squadDir, 'streams.json');
-    await writeIfNotExists(streamsPath, JSON.stringify(streamsConfig, null, 2) + '\n');
+    const workstreamsPath = join(squadDir, 'workstreams.json');
+    await writeIfNotExists(workstreamsPath, JSON.stringify(workstreamsConfig, null, 2) + '\n');
   }
 
   // -------------------------------------------------------------------------
-  // Add .squad-stream to .gitignore
+  // Add .squad-workstream to .gitignore
   // -------------------------------------------------------------------------
 
   {
-    const streamIgnoreEntry = '.squad-stream';
+    const workstreamIgnoreEntry = '.squad-workstream';
     let currentIgnore = '';
     if (existsSync(gitignorePath)) {
       currentIgnore = readFileSync(gitignorePath, 'utf-8');
     }
-    if (!currentIgnore.includes(streamIgnoreEntry)) {
+    if (!currentIgnore.includes(workstreamIgnoreEntry)) {
       const block = (currentIgnore && !currentIgnore.endsWith('\n') ? '\n' : '')
-        + '# Squad: stream activation file (local to this machine)\n'
-        + streamIgnoreEntry + '\n';
+        + '# Squad: workstream activation file (local to this machine)\n'
+        + workstreamIgnoreEntry + '\n';
       await appendFile(gitignorePath, block);
     }
   }

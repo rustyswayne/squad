@@ -1,5 +1,5 @@
 /**
- * Streams module — barrel exports.
+ * Workstreams module — barrel exports.
  *
  * @module streams
  */

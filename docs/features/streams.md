@@ -1,12 +1,12 @@
-# Squad Streams
+# Squad Workstreams
 
-> Scale Squad across multiple Codespaces by partitioning work into labeled streams.
+> Scale Squad across multiple Codespaces by partitioning work into labeled workstreams.
 
-## What Are Streams?
+## What Are Workstreams?
 
-A **stream** is a named partition of work within a Squad project. Each stream targets a specific GitHub label (e.g., `team:ui`, `team:backend`) and optionally restricts agents to certain directories. Multiple Squad instances — each running in its own Codespace — can each activate a different stream, enabling parallel work across teams.
+A **workstream** is a named partition of work within a Squad project. Each workstream targets a specific GitHub label (e.g., `team:ui`, `team:backend`) and optionally restricts agents to certain directories. Multiple Squad instances — each running in its own Codespace — can each activate a different workstream, enabling parallel work across teams.
 
-## Why Streams?
+## Why Workstreams?
 
 Squad was originally designed for a single team per repository. As projects grow, a single Codespace becomes a bottleneck:
 
@@ -14,15 +14,15 @@ Squad was originally designed for a single team per repository. As projects grow
 - **Context overload** — Ralph picks up all issues, not just the relevant ones
 - **Folder conflicts** — Multiple agents editing the same files causes merge pain
 
-Streams solve this by giving each Codespace a scoped view of the project.
+Workstreams solve this by giving each Codespace a scoped view of the project.
 
 ## Configuration
 
-### 1. Create `.squad/streams.json`
+### 1. Create `.squad/workstreams.json`
 
 ```json
 {
-  "streams": [
+  "workstreams": [
     {
       "name": "ui-team",
       "labelFilter": "team:ui",
@@ -49,9 +49,9 @@ Streams solve this by giving each Codespace a scoped view of the project.
 }
 ```
 
-### 2. Activate a Stream
+### 2. Activate a Workstream
 
-There are three ways to tell Squad which stream to use:
+There are three ways to tell Squad which workstream to use:
 
 #### Environment Variable (recommended for Codespaces)
 
@@ -69,62 +69,77 @@ Set this in your Codespace's environment or devcontainer.json:
 }
 ```
 
-#### .squad-stream File (local activation)
+#### .squad-workstream File (local activation)
 
 ```bash
-squad streams activate ui-team
+squad workstreams activate ui-team
 ```
 
-This writes a `.squad-stream` file (gitignored) so the setting is local to your machine.
+This writes a `.squad-workstream` file (gitignored) so the setting is local to your machine.
 
-#### Auto-select (single stream)
+#### Auto-select (single workstream)
 
-If `streams.json` contains only one stream, it's automatically selected.
+If `workstreams.json` contains only one workstream, it's automatically selected.
 
 ### 3. Resolution Priority
 
 1. `SQUAD_TEAM` env var (highest)
-2. `.squad-stream` file
-3. Single-stream auto-select
-4. No stream (classic single-squad mode)
+2. `.squad-workstream` file
+3. Single-workstream auto-select
+4. No workstream (classic single-squad mode)
 
-## Stream Definition Fields
+## Workstream Definition Fields
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Unique stream identifier (kebab-case) |
+| `name` | Yes | Unique workstream identifier (kebab-case) |
 | `labelFilter` | Yes | GitHub label to filter issues |
-| `folderScope` | No | Directories this stream may modify |
+| `folderScope` | No | Directories this workstream may modify |
 | `workflow` | No | `branch-per-issue` (default) or `direct` |
 | `description` | No | Human-readable purpose |
 
 ## CLI Reference
 
 ```bash
-# List configured streams
-squad streams list
+# List configured workstreams
+squad workstreams list
 
-# Show stream activity (branches, PRs)
-squad streams status
+# Show workstream activity (branches, PRs)
+squad workstreams status
 
-# Activate a stream locally
-squad streams activate <name>
+# Activate a workstream locally
+squad workstreams activate <name>
 ```
 
 ## How It Works
 
 ### Triage (Ralph)
 
-When a stream is active, Ralph's triage only picks up issues labeled with the stream's `labelFilter`. Unmatched issues are left for other streams or the main squad.
+When a workstream is active, Ralph's triage only picks up issues labeled with the workstream's `labelFilter`. Unmatched issues are left for other workstreams or the main squad.
 
 ### Workflow Enforcement
 
 - **branch-per-issue** (default): Every issue gets its own branch and PR. Agents never commit directly to main.
-- **direct**: Agents may commit directly (useful for infra/ops streams).
+- **direct**: Agents may commit directly (useful for infra/ops workstreams).
 
 ### Folder Scope
 
-When `folderScope` is set, agents should only modify files within those directories. This prevents cross-team file conflicts.
+When `folderScope` is set, agents should primarily modify files within those directories. However, `folderScope` is **advisory, not a hard lock** — agents may still touch shared files (types, configs, package exports) when their issue requires it. The real protection comes from `branch-per-issue` workflow: each issue gets its own branch, so two workstreams editing the same file won't conflict until merge time.
+
+> **Tip:** If two workstreams' PRs touch the same file, Git resolves non-overlapping changes automatically. For semantic conflicts (incompatible API changes), use PR review to catch them.
+
+### Cost Optimization: Single-Machine Multi-Workstream
+
+You don't need a separate Codespace per workstream. One machine can serve multiple workstreams:
+
+```bash
+# Switch between workstreams manually
+squad workstreams activate ui-team      # Ralph works team:ui issues
+# ... later ...
+squad workstreams activate backend-team # now works team:backend issues
+```
+
+This gives you 1× Codespace cost instead of N×, at the expense of serial (not parallel) execution. Each issue still gets its own branch — no conflicts.
 
 ## Example: Multi-Codespace Setup
 

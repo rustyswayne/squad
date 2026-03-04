@@ -11,5 +11,5 @@ coverage/
 .test-cli-*
 # Docs site generated files
 docs/dist/
-# Squad: stream activation file (local to this machine)
-.squad-stream
+# Squad: workstream activation file (local to this machine)
+.squad-workstream

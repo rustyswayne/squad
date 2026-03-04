@@ -58,7 +58,11 @@ export type { SquadEntry } from './multi-squad.js';
 export type { MultiSquadConfig } from './multi-squad.js';
 export type { SquadInfo } from './multi-squad.js';
 
-// --- Stream types (streams/types.ts) ---
+// --- Workstream types (streams/types.ts) ---
+export type { WorkstreamDefinition } from './streams/types.js';
+export type { WorkstreamConfig } from './streams/types.js';
+export type { ResolvedWorkstream } from './streams/types.js';
+/** @deprecated aliases */
 export type { StreamDefinition } from './streams/types.js';
 export type { StreamConfig } from './streams/types.js';
 export type { ResolvedStream } from './streams/types.js';

@@ -234,8 +234,8 @@ async function main(): Promise<void> {
   }
 
   if (cmd === 'workstreams' || cmd === 'streams') {
-    const { runStreams } = await import('./cli/commands/streams.js');
-    await runStreams(process.cwd(), args.slice(1));
+    const { runWorkstreams } = await import('./cli/commands/streams.js');
+    await runWorkstreams(process.cwd(), args.slice(1));
     return;
   }
 
@@ -285,5 +285,6 @@ main().catch(err => {
   }
   process.exit(1);
 });
+
 
 

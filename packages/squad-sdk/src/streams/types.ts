@@ -1,15 +1,15 @@
 /**
- * Stream Types — Type definitions for Squad Streams.
+ * Workstream Types — Type definitions for Squad Workstreams.
  *
- * Streams enable horizontal scaling by allowing multiple Squad instances
+ * Workstreams enable horizontal scaling by allowing multiple Squad instances
  * (e.g., in different Codespaces) to each handle a scoped subset of work.
  *
  * @module streams/types
  */
 
-/** Definition of a single stream (team partition). */
-export interface StreamDefinition {
-  /** Stream name, e.g., "ui-team", "backend-team" */
+/** Definition of a single workstream (team partition). */
+export interface WorkstreamDefinition {
+  /** Workstream name, e.g., "ui-team", "backend-team" */
   name: string;
   /** GitHub label to filter issues by, e.g., "team:ui" */
   labelFilter: string;
@@ -17,24 +17,33 @@ export interface StreamDefinition {
   folderScope?: string[];
   /** Workflow mode. Default: branch-per-issue */
   workflow?: 'branch-per-issue' | 'direct';
-  /** Human-readable description of this stream's purpose */
+  /** Human-readable description of this workstream's purpose */
   description?: string;
 }
 
-/** Top-level streams configuration (stored in .squad/streams.json). */
-export interface StreamConfig {
-  /** All configured streams */
-  streams: StreamDefinition[];
-  /** Default workflow for streams that don't specify one */
+/** @deprecated Use WorkstreamDefinition instead */
+export type StreamDefinition = WorkstreamDefinition;
+
+/** Top-level workstreams configuration (stored in .squad/workstreams.json). */
+export interface WorkstreamConfig {
+  /** All configured workstreams */
+  workstreams: WorkstreamDefinition[];
+  /** Default workflow for workstreams that don't specify one */
   defaultWorkflow: 'branch-per-issue' | 'direct';
 }
 
-/** A resolved stream with provenance information. */
-export interface ResolvedStream {
-  /** Stream name */
+/** @deprecated Use WorkstreamConfig instead */
+export type StreamConfig = WorkstreamConfig;
+
+/** A resolved workstream with provenance information. */
+export interface ResolvedWorkstream {
+  /** Workstream name */
   name: string;
-  /** Full stream definition */
-  definition: StreamDefinition;
-  /** How this stream was resolved */
+  /** Full workstream definition */
+  definition: WorkstreamDefinition;
+  /** How this workstream was resolved */
   source: 'env' | 'file' | 'config';
 }
+
+/** @deprecated Use ResolvedWorkstream instead */
+export type ResolvedStream = ResolvedWorkstream;

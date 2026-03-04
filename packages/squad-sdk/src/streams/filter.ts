@@ -1,36 +1,39 @@
 /**
- * Stream-Aware Issue Filtering
+ * Workstream-Aware Issue Filtering
  *
- * Filters GitHub issues to only those matching a stream's labelFilter.
- * Used by Ralph during triage to scope work to the active stream.
+ * Filters GitHub issues to only those matching a workstream's labelFilter.
+ * Used by Ralph during triage to scope work to the active workstream.
  *
  * @module streams/filter
  */
 
-import type { ResolvedStream } from './types.js';
+import type { ResolvedWorkstream } from './types.js';
 
 /** Minimal issue shape for filtering. */
-export interface StreamIssue {
+export interface WorkstreamIssue {
   number: number;
   title: string;
   labels: Array<{ name: string }>;
 }
 
+/** @deprecated Use WorkstreamIssue instead */
+export type StreamIssue = WorkstreamIssue;
+
 /**
- * Filter issues to only those matching the stream's label filter.
+ * Filter issues to only those matching the workstream's label filter.
  *
- * Matching is case-insensitive. If the stream has no labelFilter,
+ * Matching is case-insensitive. If the workstream has no labelFilter,
  * all issues are returned (passthrough).
  *
  * @param issues - Array of issues to filter
- * @param stream - The resolved stream to filter by
- * @returns Filtered array of issues matching the stream's label
+ * @param workstream - The resolved workstream to filter by
+ * @returns Filtered array of issues matching the workstream's label
  */
-export function filterIssuesByStream(
-  issues: StreamIssue[],
-  stream: ResolvedStream,
-): StreamIssue[] {
-  const filter = stream.definition.labelFilter;
+export function filterIssuesByWorkstream(
+  issues: WorkstreamIssue[],
+  workstream: ResolvedWorkstream,
+): WorkstreamIssue[] {
+  const filter = workstream.definition.labelFilter;
   if (!filter) {
     return issues;
   }
@@ -40,3 +43,6 @@ export function filterIssuesByStream(
     issue.labels.some(label => label.name.toLowerCase() === normalizedFilter),
   );
 }
+
+/** @deprecated Use filterIssuesByWorkstream instead */
+export const filterIssuesByStream = filterIssuesByWorkstream;

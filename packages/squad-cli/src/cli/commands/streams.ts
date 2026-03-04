@@ -1,17 +1,17 @@
 /**
- * CLI command: squad streams
+ * CLI command: squad workstreams
  *
  * Subcommands:
- *   list      — Show configured streams
- *   status    — Show activity per stream (branches, PRs)
- *   activate  — Write .squad-stream file to activate a stream
+ *   list      — Show configured workstreams
+ *   status    — Show activity per workstream (branches, PRs)
+ *   activate  — Write .squad-workstream file to activate a workstream
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
-import { loadStreamsConfig, resolveStream } from '@bradygaster/squad-sdk';
-import type { StreamDefinition } from '@bradygaster/squad-sdk';
+import { loadWorkstreamsConfig, resolveWorkstream } from '@bradygaster/squad-sdk';
+import type { WorkstreamDefinition } from '@bradygaster/squad-sdk';
 
 const BOLD = '\x1b[1m';
 const RESET = '\x1b[0m';
@@ -21,91 +21,94 @@ const YELLOW = '\x1b[33m';
 const RED = '\x1b[31m';
 
 /**
- * Entry point for `squad streams` subcommand.
+ * Entry point for `squad workstreams` subcommand.
  */
-export async function runStreams(cwd: string, args: string[]): Promise<void> {
+export async function runWorkstreams(cwd: string, args: string[]): Promise<void> {
   const sub = args[0];
 
   if (!sub || sub === 'list') {
-    return listStreams(cwd);
+    return listWorkstreams(cwd);
   }
   if (sub === 'status') {
-    return showStreamStatus(cwd);
+    return showWorkstreamStatus(cwd);
   }
   if (sub === 'activate') {
     const name = args[1];
     if (!name) {
-      console.error(`${RED}✗${RESET} Usage: squad streams activate <name>`);
+      console.error(`${RED}✗${RESET} Usage: squad workstreams activate <name>`);
       process.exit(1);
     }
-    return activateStream(cwd, name);
+    return activateWorkstream(cwd, name);
   }
 
-  console.error(`${RED}✗${RESET} Unknown streams subcommand: ${sub}`);
-  console.log(`\nUsage: squad streams <list|status|activate <name>>`);
+  console.error(`${RED}✗${RESET} Unknown workstreams subcommand: ${sub}`);
+  console.log(`\nUsage: squad workstreams <list|status|activate <name>>`);
   process.exit(1);
 }
 
-/**
- * List configured streams.
- */
-function listStreams(cwd: string): void {
-  const config = loadStreamsConfig(cwd);
-  const active = resolveStream(cwd);
+/** @deprecated Use runWorkstreams instead */
+export const runStreams = runWorkstreams;
 
-  if (!config || config.streams.length === 0) {
-    console.log(`\n${DIM}No streams configured.${RESET}`);
-    console.log(`${DIM}Create .squad/streams.json to define streams.${RESET}\n`);
+/**
+ * List configured workstreams.
+ */
+function listWorkstreams(cwd: string): void {
+  const config = loadWorkstreamsConfig(cwd);
+  const active = resolveWorkstream(cwd);
+
+  if (!config || config.workstreams.length === 0) {
+    console.log(`\n${DIM}No workstreams configured.${RESET}`);
+    console.log(`${DIM}Create .squad/workstreams.json to define workstreams.${RESET}\n`);
     return;
   }
 
-  console.log(`\n${BOLD}Configured Streams${RESET}\n`);
+  console.log(`\n${BOLD}Configured Workstreams${RESET}\n`);
   console.log(`  Default workflow: ${config.defaultWorkflow}\n`);
 
-  for (const stream of config.streams) {
-    const isActive = active?.name === stream.name;
+  for (const workstream of config.workstreams) {
+    const isActive = active?.name === workstream.name;
     const marker = isActive ? `${GREEN}● active${RESET}` : `${DIM}○${RESET}`;
-    const workflow = stream.workflow ?? config.defaultWorkflow;
-    console.log(`  ${marker}  ${BOLD}${stream.name}${RESET}`);
-    console.log(`       Label: ${stream.labelFilter}`);
+    const workflow = workstream.workflow ?? config.defaultWorkflow;
+    console.log(`  ${marker}  ${BOLD}${workstream.name}${RESET}`);
+    console.log(`       Label: ${workstream.labelFilter}`);
     console.log(`       Workflow: ${workflow}`);
-    if (stream.folderScope?.length) {
-      console.log(`       Folders: ${stream.folderScope.join(', ')}`);
+    if (workstream.folderScope?.length) {
+      console.log(`       Folders: ${workstream.folderScope.join(', ')}`);
     }
-    if (stream.description) {
-      console.log(`       ${DIM}${stream.description}${RESET}`);
+    if (workstream.description) {
+      console.log(`       ${DIM}${workstream.description}${RESET}`);
     }
     console.log();
   }
 
   if (active) {
-    console.log(`  ${DIM}Active stream resolved via: ${active.source}${RESET}\n`);
+    console.log(`  ${DIM}Active workstream resolved via: ${active.source}${RESET}\n`);
   }
 }
 
 /**
- * Show activity per stream (branches, PRs via gh CLI).
+ * Show activity per workstream (branches, PRs via gh CLI).
  */
-function showStreamStatus(cwd: string): void {
-  const config = loadStreamsConfig(cwd);
-  const active = resolveStream(cwd);
+function showWorkstreamStatus(cwd: string): void {
+  const config = loadWorkstreamsConfig(cwd);
+  const active = resolveWorkstream(cwd);
 
-  if (!config || config.streams.length === 0) {
-    console.log(`\n${DIM}No streams configured.${RESET}\n`);
+  if (!config || config.workstreams.length === 0) {
+    console.log(`\n${DIM}No workstreams configured.${RESET}\n`);
     return;
   }
 
-  console.log(`\n${BOLD}Stream Status${RESET}\n`);
+  console.log(`\n${BOLD}Workstream Status${RESET}\n`);
 
-  for (const stream of config.streams) {
-    const isActive = active?.name === stream.name;
+  for (const workstream of config.workstreams) {
+    const isActive = active?.name === workstream.name;
     const marker = isActive ? `${GREEN}●${RESET}` : `${DIM}○${RESET}`;
-    console.log(`  ${marker} ${BOLD}${stream.name}${RESET} (${stream.labelFilter})`);
+    console.log(`  ${marker} ${BOLD}${workstream.name}${RESET} (${workstream.labelFilter})`);
 
     // Try to get PR and branch info via gh CLI
     try {
       const prOutput = execSync(
-        `gh pr list --label "${stream.labelFilter}" --json number,title,state --limit 5`,
+        `gh pr list --label "${workstream.labelFilter}" --json number,title,state --limit 5`,
         { cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] },
       );
       const prs = JSON.parse(prOutput) as Array<{ number: number; title: string; state: string }>;
@@ -124,7 +127,7 @@ function showStreamStatus(cwd: string): void {
     // Try to get branch info
     try {
       const branchOutput = execSync(
-        `git branch --list "*${stream.name}*"`,
+        `git branch --list "*${workstream.name}*"`,
         { cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] },
       );
       const branches = branchOutput.trim().split('\n').filter(Boolean);
@@ -143,24 +146,24 @@ function showStreamStatus(cwd: string): void {
 }
 
 /**
- * Activate a stream by writing .squad-stream file.
+ * Activate a workstream by writing .squad-workstream file.
  */
-function activateStream(cwd: string, name: string): void {
-  const config = loadStreamsConfig(cwd);
+function activateWorkstream(cwd: string, name: string): void {
+  const config = loadWorkstreamsConfig(cwd);
 
-  // Validate the stream exists in config (warn if not, but still allow)
+  // Validate the workstream exists in config (warn if not, but still allow)
   if (config) {
-    const found = config.streams.find(s => s.name === name);
+    const found = config.workstreams.find(s => s.name === name);
     if (!found) {
-      console.log(`${YELLOW}⚠${RESET} Stream "${name}" not found in .squad/streams.json`);
-      console.log(`  Available: ${config.streams.map(s => s.name).join(', ')}`);
-      console.log(`  Writing .squad-stream anyway...\n`);
+      console.log(`${YELLOW}⚠${RESET} Workstream "${name}" not found in .squad/workstreams.json`);
+      console.log(`  Available: ${config.workstreams.map(s => s.name).join(', ')}`);
+      console.log(`  Writing .squad-workstream anyway...\n`);
     }
   }
 
-  const streamFilePath = path.join(cwd, '.squad-stream');
-  fs.writeFileSync(streamFilePath, name + '\n', 'utf-8');
-  console.log(`${GREEN}✓${RESET} Activated stream: ${BOLD}${name}${RESET}`);
-  console.log(`  Written to: ${streamFilePath}`);
+  const workstreamFilePath = path.join(cwd, '.squad-workstream');
+  fs.writeFileSync(workstreamFilePath, name + '\n', 'utf-8');
+  console.log(`${GREEN}✓${RESET} Activated workstream: ${BOLD}${name}${RESET}`);
+  console.log(`  Written to: ${workstreamFilePath}`);
   console.log(`${DIM}  (This file is gitignored — it's local to your machine/Codespace)${RESET}\n`);
 }

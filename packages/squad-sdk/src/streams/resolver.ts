@@ -1,37 +1,37 @@
 /**
- * Stream Resolver — Resolves which stream is active.
+ * Workstream Resolver — Resolves which workstream is active.
  *
  * Resolution order:
- *   1. SQUAD_TEAM env var → look up in streams config
- *   2. .squad-stream file (gitignored) → contains stream name
- *   3. squad.config.ts → streams.active field (via .squad/streams.json)
- *   4. null (no stream — single-squad mode)
+ *   1. SQUAD_TEAM env var → look up in workstreams config
+ *   2. .squad-workstream file (gitignored) → contains workstream name
+ *   3. squad.config.ts → workstreams.active field (via .squad/workstreams.json)
+ *   4. null (no workstream — single-squad mode)
  *
  * @module streams/resolver
  */
 
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import type { StreamConfig, StreamDefinition, ResolvedStream } from './types.js';
+import type { WorkstreamConfig, WorkstreamDefinition, ResolvedWorkstream } from './types.js';
 
 /**
- * Load streams configuration from .squad/streams.json.
+ * Load workstreams configuration from .squad/workstreams.json.
  *
  * @param squadRoot - Root directory of the project (where .squad/ lives)
- * @returns Parsed StreamConfig or null if not found / invalid
+ * @returns Parsed WorkstreamConfig or null if not found / invalid
  */
-export function loadStreamsConfig(squadRoot: string): StreamConfig | null {
-  const configPath = join(squadRoot, '.squad', 'streams.json');
+export function loadWorkstreamsConfig(squadRoot: string): WorkstreamConfig | null {
+  const configPath = join(squadRoot, '.squad', 'workstreams.json');
   if (!existsSync(configPath)) {
     return null;
   }
 
   try {
     const raw = readFileSync(configPath, 'utf-8');
-    const parsed = JSON.parse(raw) as StreamConfig;
+    const parsed = JSON.parse(raw) as WorkstreamConfig;
 
     // Basic validation
-    if (!parsed.streams || !Array.isArray(parsed.streams)) {
+    if (!parsed.workstreams || !Array.isArray(parsed.workstreams)) {
       return null;
     }
 
@@ -46,32 +46,35 @@ export function loadStreamsConfig(squadRoot: string): StreamConfig | null {
   }
 }
 
+/** @deprecated Use loadWorkstreamsConfig instead */
+export const loadStreamsConfig = loadWorkstreamsConfig;
+
 /**
- * Find a stream definition by name in a config.
+ * Find a workstream definition by name in a config.
  */
-function findStream(config: StreamConfig, name: string): StreamDefinition | undefined {
-  return config.streams.find(s => s.name === name);
+function findWorkstream(config: WorkstreamConfig, name: string): WorkstreamDefinition | undefined {
+  return config.workstreams.find(s => s.name === name);
 }
 
 /**
- * Resolve which stream is active for the current environment.
+ * Resolve which workstream is active for the current environment.
  *
  * @param squadRoot - Root directory of the project
- * @returns ResolvedStream or null if no stream is active
+ * @returns ResolvedWorkstream or null if no workstream is active
  */
-export function resolveStream(squadRoot: string): ResolvedStream | null {
-  const config = loadStreamsConfig(squadRoot);
+export function resolveWorkstream(squadRoot: string): ResolvedWorkstream | null {
+  const config = loadWorkstreamsConfig(squadRoot);
 
   // 1. SQUAD_TEAM env var
   const envTeam = process.env.SQUAD_TEAM;
   if (envTeam) {
     if (config) {
-      const def = findStream(config, envTeam);
+      const def = findWorkstream(config, envTeam);
       if (def) {
         return { name: envTeam, definition: def, source: 'env' };
       }
     }
-    // Env var set but no matching stream config — synthesize a minimal definition
+    // Env var set but no matching workstream config — synthesize a minimal definition
     return {
       name: envTeam,
       definition: {
@@ -82,24 +85,24 @@ export function resolveStream(squadRoot: string): ResolvedStream | null {
     };
   }
 
-  // 2. .squad-stream file
-  const streamFilePath = join(squadRoot, '.squad-stream');
-  if (existsSync(streamFilePath)) {
+  // 2. .squad-workstream file
+  const workstreamFilePath = join(squadRoot, '.squad-workstream');
+  if (existsSync(workstreamFilePath)) {
     try {
-      const streamName = readFileSync(streamFilePath, 'utf-8').trim();
-      if (streamName) {
+      const workstreamName = readFileSync(workstreamFilePath, 'utf-8').trim();
+      if (workstreamName) {
         if (config) {
-          const def = findStream(config, streamName);
+          const def = findWorkstream(config, workstreamName);
           if (def) {
-            return { name: streamName, definition: def, source: 'file' };
+            return { name: workstreamName, definition: def, source: 'file' };
           }
         }
         // File exists but no config — synthesize
         return {
-          name: streamName,
+          name: workstreamName,
           definition: {
-            name: streamName,
-            labelFilter: `team:${streamName}`,
+            name: workstreamName,
+            labelFilter: `team:${workstreamName}`,
           },
           source: 'file',
         };
@@ -109,22 +112,28 @@ export function resolveStream(squadRoot: string): ResolvedStream | null {
     }
   }
 
-  // 3. streams.json with an "active" field (convention: first stream if only one)
-  if (config && config.streams.length === 1) {
-    const def = config.streams[0]!;
+  // 3. workstreams.json with an "active" field (convention: first workstream if only one)
+  if (config && config.workstreams.length === 1) {
+    const def = config.workstreams[0]!;
     return { name: def.name, definition: def, source: 'config' };
   }
 
-  // 4. No stream detected
+  // 4. No workstream detected
   return null;
 }
 
+/** @deprecated Use resolveWorkstream instead */
+export const resolveStream = resolveWorkstream;
+
 /**
- * Get the GitHub label filter string for a resolved stream.
+ * Get the GitHub label filter string for a resolved workstream.
  *
- * @param stream - The resolved stream
+ * @param workstream - The resolved workstream
  * @returns Label filter string (e.g., "team:ui")
  */
-export function getStreamLabelFilter(stream: ResolvedStream): string {
-  return stream.definition.labelFilter;
+export function getWorkstreamLabelFilter(workstream: ResolvedWorkstream): string {
+  return workstream.definition.labelFilter;
 }
+
+/** @deprecated Use getWorkstreamLabelFilter instead */
+export const getStreamLabelFilter = getWorkstreamLabelFilter;

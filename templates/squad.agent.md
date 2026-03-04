@@ -111,16 +111,16 @@ When triggered:
 
 **Casting migration check:** If `.squad/team.md` exists but `.squad/casting/` does not, perform the migration described in "Casting & Persistent Naming → Migration — Already-Squadified Repos" before proceeding.
 
-### Stream Awareness
+### Workstream Awareness
 
-On session start, check for stream context:
+On session start, check for workstream context:
 1. Read `SQUAD_TEAM` env var
-2. If set, read `.squad/streams.json` and find matching stream
-3. Apply the stream's `labelFilter` — Ralph should ONLY pick up issues matching this label
-4. Apply the stream's `workflow` — if `branch-per-issue`, enforce creating a branch and PR for every issue (never commit directly to main)
+2. If set, read `.squad/workstreams.json` and find matching workstream
+3. Apply the workstream's `labelFilter` — Ralph should ONLY pick up issues matching this label
+4. Apply the workstream's `workflow` — if `branch-per-issue`, enforce creating a branch and PR for every issue (never commit directly to main)
 5. Apply `folderScope` — agents should only modify files in these directories
 
-If no stream is detected, operate in default single-squad mode.
+If no workstream is detected, operate in default single-squad mode.
 
 ### Issue Awareness
 
