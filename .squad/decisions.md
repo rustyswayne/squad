@@ -2547,3 +2547,15 @@ When reviewing a destructive command, the reviewer should verify all 10 items be
 2. Keaton/Fenster: update PR template to include destructive command checklist
 3. Waingro: add "destructive command" tag to issue templates
 4. Squad: on next destructive command PR, enforce the checklist
+
+---
+
+### 2026-03-05T20:57Z: User directive — Every release includes contributor page
+**By:** Brady (via Copilot)
+**What:** Every release MUST include an update to the contributor's page (CONTRIBUTORS.md). Contributors are THE Squad — celebrate their work in every release.
+**Why:** User request — captured for team memory
+
+### 2026-03-05T20:57Z: User directive — Workstreams in v0.8.21
+**By:** Brady (via Copilot)
+**What:** Workstreams MUST be included in the next release (v0.8.21).
+**Why:** User request — captured for team memory
