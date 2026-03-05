@@ -852,3 +852,14 @@ All labeled squad:hockney for routing. Each issue includes: what's missing, why 
 
 **Recommendation:** APPROVED WITH NOTES — change is correct, but test coverage should be strengthened in a follow-up. Vitest suite needs explicit workflow name assertions.
 📌 Team update (2026-03-05T10-35-50Z): PR #201 workflow filter approved by all reviewers — framework/scaffolding distinction, implementation pattern validated, test coverage noted — decided by Keaton, Fenster, Hockney, Edie
+
+## Learnings
+
+**2026-03-05: Strengthened init workflow test for issue #201**
+- Replaced weak test `expect(ymlFiles.length).toBeGreaterThan(0)` with two focused tests
+- Test 1: Verifies exactly 4 framework workflows ARE installed (squad-heartbeat.yml, squad-triage.yml, squad-issue-assign.yml, sync-squad-labels.yml)
+- Test 2: Verifies 8 CI/CD workflows are NOT installed (squad-ci.yml, squad-release.yml, squad-docs.yml, squad-insider-release.yml, squad-preview.yml, squad-promote.yml, squad-main-guard.yml, squad-label-enforce.yml)
+- Both tests now use explicit `existsSync()` checks per file instead of counting
+- Removed conditional guard (`if existsSync`) — directory should always exist post-init
+- Tests pass with clear ✓ indicators for each assertion
+- **Key lesson:** Positive AND negative assertions catch regressions. Testing "what should be there" AND "what should NOT be there" provides full coverage against accidental leakage or omission.
