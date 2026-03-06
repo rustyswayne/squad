@@ -1021,6 +1021,13 @@ export async function runShell(): Promise<void> {
     // Guard: require a Squad team before processing work requests
     const teamFile = join(teamRoot, '.squad', 'team.md');
     if (!existsSync(teamFile)) {
+      // When skipCastConfirmation is explicitly set (true or false), the message
+      // was routed from an /init flow (inline or follow-up), so bypass the guard
+      // and go straight to Init Mode casting even without a team.md.
+      if (parsed.skipCastConfirmation !== undefined) {
+        await handleInitCast(parsed, parsed.skipCastConfirmation);
+        return;
+      }
       shellApi?.addMessage({
         role: 'system',
         content: '\u26A0 No Squad team found. Run /init to create your team first.',

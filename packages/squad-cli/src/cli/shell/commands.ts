@@ -26,6 +26,12 @@ export interface CommandResult {
   clear?: boolean;
   /** When true, the shell should trigger init casting with the provided prompt. */
   triggerInitCast?: { prompt: string };
+  /**
+   * When true, the shell should enter "awaiting init prompt" mode:
+   * the next user message will be treated as a team-cast request.
+   * Set when `/init` is run with no inline prompt.
+   */
+  awaitInitPrompt?: boolean;
 }
 
 /**
@@ -223,9 +229,10 @@ function handleInit(args: string[], context: CommandContext): CommandResult {
     };
   }
   
-  // No prompt: guide the user
+  // No prompt: guide the user and enter "awaiting init prompt" mode
   return {
     handled: true,
+    awaitInitPrompt: true,
     output: [
       'To cast your Squad team, just type what you want to build.',
       '',

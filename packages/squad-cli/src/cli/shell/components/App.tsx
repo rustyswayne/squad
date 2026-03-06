@@ -58,6 +58,11 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
   const [activityHint, setActivityHint] = useState<string | undefined>(undefined);
   const [agentActivities, setAgentActivities] = useState<Map<string, string>>(new Map());
   const [welcome, setWelcome] = useState<WelcomeData | null>(() => loadWelcomeData(teamRoot));
+  /**
+   * True after a no-args `/init` so the next user message is treated as a
+   * team-cast request (equivalent to `/init <message>`).
+   */
+  const [awaitingInitPrompt, setAwaitingInitPrompt] = useState(false);
   const messagesRef = useRef<ShellMessage[]>([]);
   const ctrlCRef = useRef(0);
   const ctrlCTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -177,6 +182,32 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
     const knownAgents = registry.getAll().map(a => a.name);
     const parsed = parseInput(input, knownAgents);
 
+    // If we're awaiting an init prompt and the user sent a non-slash message,
+    // treat it as an inline /init <prompt> cast request.
+    if (awaitingInitPrompt && parsed.type !== 'slash_command') {
+      setAwaitingInitPrompt(false);
+      if (!onDispatch) {
+        appendMessages(prev => [...prev, {
+          role: 'system' as const,
+          content: 'SDK not connected. Try: (1) squad doctor to check setup, (2) check your internet connection, (3) restart the shell to reconnect.',
+          timestamp: new Date(),
+        }]);
+        return;
+      }
+      const castParsed: ParsedInput = {
+        type: 'coordinator',
+        raw: input,
+        content: input,
+        skipCastConfirmation: false, // show confirmation, same as freeform cast
+      };
+      setProcessing(true);
+      onDispatch(castParsed).finally(() => {
+        setProcessing(false);
+        setAgents([...registry.getAll()]);
+      });
+      return;
+    }
+
     if (parsed.type === 'slash_command') {
       const result = executeCommand(parsed.command!, parsed.args ?? [], {
         registry,
@@ -214,6 +245,11 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
         return;
       }
 
+      if (result.awaitInitPrompt) {
+        // No-args /init: show the guidance and wait for the user's next message
+        setAwaitingInitPrompt(true);
+      }
+
       if (result.output) {
         appendMessages(prev => [...prev, {
           role: 'system' as const,
@@ -238,7 +274,7 @@ export const App: React.FC<AppProps> = ({ registry, renderer, teamRoot, version,
     }
 
     setAgents([...registry.getAll()]);
-  }, [registry, renderer, teamRoot, exit, onDispatch, appendMessages]);
+  }, [registry, renderer, teamRoot, exit, onDispatch, appendMessages, awaitingInitPrompt]);
 
   const rosterAgents = welcome?.agents ?? [];
 

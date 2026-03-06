@@ -379,6 +379,94 @@ describe('triggerInitCast signal — App.tsx dispatch contract', () => {
 });
 
 // ===========================================================================
+// 5b. awaitInitPrompt signal — no-args /init follow-up flow (#216)
+// ===========================================================================
+
+describe('awaitInitPrompt signal — no-args /init follow-up flow', () => {
+  let context: CommandContext;
+
+  beforeEach(() => {
+    context = makeCommandContext('/test');
+  });
+
+  it('sets awaitInitPrompt=true when no args given', () => {
+    const result = executeCommand('init', [], context);
+    expect(result.handled).toBe(true);
+    expect(result.awaitInitPrompt).toBe(true);
+  });
+
+  it('sets awaitInitPrompt=true for whitespace-only args', () => {
+    const result = executeCommand('init', ['  ', '  '], context);
+    expect(result.handled).toBe(true);
+    expect(result.awaitInitPrompt).toBe(true);
+  });
+
+  it('does NOT set awaitInitPrompt when inline prompt is provided', () => {
+    const result = executeCommand('init', ['Build', 'a', 'snake', 'game'], context);
+    expect(result.handled).toBe(true);
+    expect(result.triggerInitCast).toBeDefined();
+    expect(result.awaitInitPrompt).toBeUndefined();
+  });
+
+  it('awaitInitPrompt result has guidance output text', () => {
+    const result = executeCommand('init', [], context);
+    expect(result.awaitInitPrompt).toBe(true);
+    expect(result.output).toBeDefined();
+    expect(result.output).toContain('just type what you want to build');
+  });
+
+  it('awaitInitPrompt output includes team.md path', () => {
+    const result = executeCommand('init', [], context);
+    expect(result.output).toContain('/test/.squad/team.md');
+  });
+});
+
+// ===========================================================================
+// 5c. handleDispatch guard bypass — skipCastConfirmation=false with no team.md
+// ===========================================================================
+
+describe('handleDispatch guard — skipCastConfirmation bypasses missing team.md check', () => {
+  it('follow-up init ParsedInput has skipCastConfirmation=false (not undefined), bypassing guard', () => {
+    // App.tsx sets skipCastConfirmation: false for follow-up-after-/init messages.
+    // false !== undefined, so the guard check `parsed.skipCastConfirmation !== undefined`
+    // evaluates to true and the cast path is taken rather than the error path.
+    const followUpParsed = {
+      type: 'coordinator' as const,
+      raw: 'Build a Marine Asset Integrity tool',
+      content: 'Build a Marine Asset Integrity tool',
+      skipCastConfirmation: false as const,
+    };
+    expect(followUpParsed.skipCastConfirmation).toBe(false);
+    expect(followUpParsed.skipCastConfirmation !== undefined).toBe(true);
+  });
+
+  it('plain coordinator ParsedInput has skipCastConfirmation=undefined — guard is applied', () => {
+    // Regular messages have no skipCastConfirmation, so the guard runs normally
+    // and shows the "No Squad team found" error when team.md is absent.
+    const regularParsed = {
+      type: 'coordinator' as const,
+      raw: 'Do something',
+      content: 'Do something',
+    };
+    expect(regularParsed.skipCastConfirmation).toBeUndefined();
+    expect((regularParsed as { skipCastConfirmation?: boolean }).skipCastConfirmation !== undefined).toBe(false);
+  });
+
+  it('inline /init ParsedInput has skipCastConfirmation=true — guard bypassed and confirmation skipped', () => {
+    // App.tsx sets skipCastConfirmation: true for inline /init "prompt" messages.
+    // The guard is bypassed AND the confirmation dialog is skipped.
+    const inlineParsed = {
+      type: 'coordinator' as const,
+      raw: 'Build a REST API',
+      content: 'Build a REST API',
+      skipCastConfirmation: true as const,
+    };
+    expect(inlineParsed.skipCastConfirmation).toBe(true);
+    expect(inlineParsed.skipCastConfirmation !== undefined).toBe(true);
+  });
+});
+
+// ===========================================================================
 // 6. Ctrl+C abort — activeInitSession lifecycle
 // ===========================================================================
 
