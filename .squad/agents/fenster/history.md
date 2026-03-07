@@ -1,3 +1,4 @@
+📌 Team update (2026-03-07T05:56:56Z): Test suite assessment complete — 8 CLI commands untested (high-risk for next-wave bugs #237, #236). 30+ error-handling tests missing. Recommend 12-14 hrs QA work before feature wave. Adopted CLI wiring regression test pattern from PR #238 permanently. — decided by Hockney
 📌 Team update (2026-03-05T22:46:00Z): Azure Function samples require \main\ field and build step — decided by Fenster
 # Project Context
 

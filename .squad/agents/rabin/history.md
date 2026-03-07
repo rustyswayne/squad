@@ -1,3 +1,4 @@
+📌 Team update (2026-03-07T05:56:56Z): Issue triage complete — Migration wave grouping: #197 (shell init circular error), #231 (formal `squad migrate` CLI), #126 (migration warnings + regressions). Batch together for cohesive migration UX. Also: #240 (ADO work item config) is fix-now blocker. — decided by Keaton
 # Project Context
 
 - **Owner:** Brady

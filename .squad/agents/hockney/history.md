@@ -1,3 +1,4 @@
+📌 Team update (2026-03-07T05:56:56Z): Led test suite health assessment. Safe to ship v0.8.21 (3,655 passing). Critical gaps: 8 CLI commands untested, 30+ error-handling tests missing. Recommend 12-14 hrs QA before v0.8.22 feature work. Flaky speed gate (3s threshold, 50% pass rate) should relax to 5s or optimize init path. Adopted CLI wiring regression test pattern from PR #238 permanently. — decided by Hockney
 # Project Context
 
 - **Owner:** Brady

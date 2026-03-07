@@ -1,3 +1,4 @@
+📌 Team update (2026-03-07T05:56:56Z): Issue triage complete — #223 (model config reliability, P0 blocker) prioritized over #205 (charter-based model spec feature). Fix #223 first; #205 becomes feature built on top of reliable config layer. — decided by Keaton
 # Project Context
 
 📌 Team update (2026-03-05T21:37:09Z): Phase 1 SDK-First fan-out complete — decided by Keaton

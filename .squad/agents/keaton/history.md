@@ -1,3 +1,4 @@
+📌 Team update (2026-03-07T05:56:56Z): Led full issue triage (22 open issues). P0/P1/P2/P3 prioritization complete. v0.8.22 target = 11 issues (5 fix-now + 6 next-wave); 11 deferred to v0.8.23+. Key decisions: CLI audit batch (#237/#236), model config priority (#223 > #205), migration wave grouping (#197/#231/#126), hub repo feature (#242). — decided by Keaton
 # Project Context
 
 - **Owner:** Brady

@@ -79,3 +79,26 @@ Released v0.8.19: squad nap command restored + squad doctor wired into CLI. PR #
 **Zero state corruption.** All operations within merge-driver constraints. Sequential merges may require rebase of later PRs when base changes materially. Rebase drops indicate upstream fix — safe to proceed.
 
 **Team Status:** All 5 Phase 2 ready PRs now merged to dev (internal + community). Test validation in progress (Hockney).
+
+## 📌 Phase 4 Sequential PR Merges — 2026-03-07T01-50-00Z
+
+**PHASE 4 INTERNAL PR MERGES COMPLETE.** Brady requested merge of 2 critical fix PRs into dev, confirmed green by Fenster and Hockney.
+
+### Merge Summary
+- ✅ PR #235 (Hockney's test fixes): Merged successfully (commit ce418c6)
+  - Resolved all 16 pre-existing test failures across 4 modules
+  - Test suite now 3656 passing, 0 failures (134 test files)
+- ✅ PR #234 (Fenster's runtime bug fixes): Merged successfully (commit f88bf4c)
+  - Fixed 4 runtime issues: #214, #207, #206, #193
+  - Key fixes: sqlite module detection, path resolution from subdirs, terminal flicker, ceremonies file size threshold
+
+### Issues Closed
+All 4 issues resolved by PR #234 closed with comment "Fixed by PR #234 (merged to dev).":
+- #214: node:sqlite builtin module error → Added pre-flight check + upgrade guidance
+- #207: Squad not found from non-root directory → Fixed path resolution in nap + consult
+- #206: Terminal blink/flicker → Reduced animation timers, removed scrollback clear
+- #193: Ceremonies file size threshold → Added compact dispatch table + individual skill files
+
+**State Integrity:** Zero conflicts, clean merges, all .squad/ state preserved (merge=union enforced).
+
+**Key Learning:** Sequential merges with confirmed green statuses from peer reviewers eliminate merge conflicts and enable confident pipeline progression. All 7 Phase 2–4 PR merges (5 Phase 2 + 2 Phase 4) completed without intervention.
