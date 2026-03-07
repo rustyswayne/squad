@@ -749,3 +749,20 @@ Fixed 4 runtime bugs:
 - The @github/copilot SDK bundles node:sqlite imports in its minified output. Cannot fix at source — pre-flight checks with clear messages are the right pattern.
 - resolveSquad() returns the .squad/ directory path itself, not the parent. Callers must not re-join with '.squad'.
 - Ink re-renders on every React state change. Multiple high-frequency animation timers compound into excessive redraws. Keep intervals ≥120ms for animations, ≥1000ms for counters.
+## Phase 3 CLI Config Fixes — 2026-03-07
+
+**PR #233 (squad/phase3-cli-config → dev)**
+
+Fixed 4 bugs in a single branch:
+
+1. **#226 — aspire not wired:** Added routing block + help text for squad aspire in cli-entry.ts. The command existed (175 lines) but was never connected to the router.
+2. **#229 — doctor not exported:** CLI routing was present but unDoctor/doctorCommand were not exported from the barrel. Added exports to cli/index.ts for SDK consumers.
+3. **#201 — workflows opt-in:** FRAMEWORK_WORKFLOWS filter was already in place. Added --no-workflows flag to squad init and threaded includeWorkflows through RunInitOptions.
+4. **#202 — config.json gitignore:** Both link.ts and init-remote.ts now auto-append .squad/config.json to .gitignore after writing config, using the same pattern as orchestration-log entries.
+
+## Learnings
+- CLI command wiring requires both a routing block in cli-entry.ts AND help text in the help section. Easy to miss one.
+- The .gitignore append pattern (check exists, check includes, append with header comment) is reusable across init, link, and init-remote.
+- FRAMEWORK_WORKFLOWS already filters init to 4 safe workflows; the opt-in flag is about user control, not safety.
+- `process.env.NODE_NO_WARNINGS = '1'` set at runtime does NOT suppress Node.js ExperimentalWarning -- the env var is only checked at process start. Use a `process.emit` override to filter warnings at runtime.
+- CI failures in --version tests were caused by `node:sqlite` ExperimentalWarning leaking into terminal output (3 lines instead of 1). Fixed with process.emit hook in cli-entry.ts.
