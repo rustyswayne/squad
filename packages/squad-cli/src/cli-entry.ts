@@ -42,6 +42,8 @@ async function main(): Promise<void> {
     console.log(`             Flags: --global (init in personal squad directory)`);
     console.log(`  ${BOLD}init${RESET}       Initialize Squad (skip files that already exist)`);
     console.log(`             Flags: --global (init in personal squad directory)`);
+    console.log(`             Usage: init --mode remote <team-repo-path>`);
+    console.log(`             Creates .squad/config.json pointing to an external team root`);
     console.log(`  ${BOLD}upgrade${RESET}    Update Squad-owned files to latest version`);
     console.log(`             Overwrites: squad.agent.md, templates dir (.squad/templates/)`);
     console.log(`             Never touches: .squad/ or .ai-team/ (your team state)`);
@@ -82,6 +84,8 @@ async function main(): Promise<void> {
     console.log(`             Flags: --dry-run, --clean, --yes, --accept-risks`);
     console.log(`  ${BOLD}workstreams${RESET} Manage Squad Workstreams (multi-Codespace scaling)`);
     console.log(`             Usage: workstreams <list|status|activate <name>>`);
+    console.log(`  ${BOLD}link${RESET}       Link project to a remote team root`);
+    console.log(`             Usage: link <team-repo-path>`);
     console.log(`  ${BOLD}build${RESET}      Compile squad.config.ts into .squad/ markdown`);
     console.log(`             Flags: --check (validate only), --dry-run (preview)`);
     console.log(`                    --watch (rebuild on change)`);
@@ -113,6 +117,21 @@ async function main(): Promise<void> {
 
   // Route subcommands
   if (cmd === 'init') {
+    const modeIdx = args.indexOf('--mode');
+    const mode = (modeIdx !== -1 && args[modeIdx + 1]) ? args[modeIdx + 1] : undefined;
+
+    if (mode === 'remote') {
+      const teamPath = args[modeIdx + 2];
+      if (!teamPath) {
+        fatal('Usage: squad init --mode remote <team-repo-path>');
+      }
+      const { writeRemoteConfig } = await import('./cli/commands/init-remote.js');
+      const dest = process.cwd();
+      writeRemoteConfig(dest, teamPath);
+      await runInit(dest);
+      return;
+    }
+
     const dest = hasGlobal ? resolveGlobalSquadPath() : process.cwd();
     runInit(dest).catch(err => {
       fatal(err.message);
@@ -311,6 +330,16 @@ async function main(): Promise<void> {
   if (cmd === 'extract') {
     const { runExtract } = await import('./cli/commands/extract.js');
     await runExtract(process.cwd(), args.slice(1));
+    return;
+  }
+
+  if (cmd === 'link') {
+    const { runLink } = await import('./cli/commands/link.js');
+    const teamPath = args[1];
+    if (!teamPath) {
+      fatal('Usage: squad link <team-repo-path>');
+    }
+    runLink(process.cwd(), teamPath);
     return;
   }
 
