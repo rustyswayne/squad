@@ -8,11 +8,19 @@
  * If no build number exists (e.g. 0.8.6-preview), starts at 1.
  * Non-prerelease versions use: major.minor.patch.build
  * Updates all 3 package.json files (root + both workspaces) in lockstep.
+ *
+ * Skip this script by setting SKIP_BUILD_BUMP=1 (used in CI/CD publish).
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// Skip build bump if SKIP_BUILD_BUMP is set (e.g., CI/CD publish)
+if (process.env.SKIP_BUILD_BUMP === '1' || process.env.CI === 'true') {
+  console.log('⏭️  Skipping build bump (CI mode)');
+  process.exit(0);
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
